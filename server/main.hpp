@@ -11,4 +11,5 @@ std::atomic<ENetHost*> host;
 std::atomic<bool> run;
 char clientCount;
 char* broadcastMessage;
+int usernamesGiven[512];
 void takeInput();

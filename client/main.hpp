@@ -11,7 +11,7 @@ std::atomic<ENetPeer*> server;
 ENetAddress clientAddress;
 bool connected = false;
 std::atomic<bool> running;
-
+char** names;
 
 void disconnect();
 void takeInput();

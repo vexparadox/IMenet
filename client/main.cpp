@@ -26,7 +26,6 @@ int main(int argc, char const *argv[])
     ENetEvent event;
     peer.store(enet_host_connect (client.load(), &clientAddress, 2, 0));
     enet_host_flush (client.load());
-
     if (!peer.load()){
     	printf("%s\n", "No available peers for initiating an ENet connection.");
     }
@@ -47,6 +46,11 @@ int main(int argc, char const *argv[])
         running.store(false);
     }
 
+    names = (char**)malloc(sizeof(char)*255*sizeof(char*));
+    for(int i = 0; i < 255; i++){
+        names[i] = (char*)malloc(sizeof(char)*510);
+    }
+    names[255] = "Server";
     std::thread inputThread(&takeInput);
     while(running.load() && connected){
         ENetEvent event;
@@ -55,14 +59,20 @@ int main(int argc, char const *argv[])
         {
             switch (event.type)
             {
-            case ENET_EVENT_TYPE_RECEIVE:
-		        printf ("%x: %s \n",
-		                event.packet -> data[0],
-		                event.packet -> data+1
-		                );
-		        /* Clean up the packet now that we're done using it. */
-                enet_packet_destroy (event.packet);
-                break;
+            case ENET_EVENT_TYPE_RECEIVE:{
+                //if it's a message
+                if(event.packet->data[0] == 0){
+    		        printf ("%x: %s \n",
+    		                names[event.packet -> data[1]],
+    		                event.packet -> data+2
+    		                );
+                }else if (event.packet->data[0] == 1){
+                    //else if it's a new connection
+                    memcpy(names[event.packet->data[1]], event.packet->data+2, 510); 
+                    printf("New user with the name: %s\n", names[event.packet->data[1]]);
+                    enet_packet_destroy (event.packet);
+                }
+            }break;
             case ENET_EVENT_TYPE_DISCONNECT:
                 printf ("%s disconnected.\n", event.peer->data);
                 event.peer -> data = NULL;
@@ -70,7 +80,6 @@ int main(int argc, char const *argv[])
                 break;
 
             case ENET_EVENT_TYPE_NONE:
-
                 break;
             }
         }
@@ -82,18 +91,20 @@ int main(int argc, char const *argv[])
 }
 
 void takeInput(){
-    char buffer[255];
+    char buffer[512];
     while (running.load()){
-        fgets(buffer, sizeof(buffer), stdin);
+        fgets(buffer+2, 510, stdin);
         //get rid of that pesky \n
         char* temp = buffer+strlen(buffer)-1;
         *temp = '\0';
+        buffer[0] = 0; // tell the server it's a message
+        buffer[1] = 0; // the second byte is ignored by the server, it's filled with the userID when it's resent out
         if(strcmp(buffer, "") != 0){
             // controller->takeInput(buffer);
             if(strcmp(buffer, "exit") == 0){
         		running.store(false);
         	}else{
-        	    ENetPacket* packet = enet_packet_create (buffer, strlen(buffer) + 1, ENET_PACKET_FLAG_RELIABLE);
+        	    ENetPacket* packet = enet_packet_create (buffer, 512, ENET_PACKET_FLAG_RELIABLE);
 			    enet_peer_send (server.load(), 0, packet);         
 			    enet_host_flush (client.load());
 			    printf("\033[1A"); //go up one line
