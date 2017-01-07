@@ -1,4 +1,7 @@
 # IM system
+This is a micro instant messaging system, there's a server and client side. Users can have a custom Username and talk to others on the same server.
+
+Blog post coming soon.
 
 ## Requirements & Setup
 Requires Enet to be linked, http://enet.bespin.org. On Linux and OSX it's a simple make install process. The makefiles included will link to a shared library, for Windows this may have to change.
@@ -29,4 +32,5 @@ Note that B2 is used for UserIDs, the Client doesn't need to know about its own 
 | Message |  0 | NULL | Message Content | B2 is filled by the Server when broadcast to clients |
 | Username |  1 | NULL | Username | B3-B510 is saved and broadcast to other clients |
 
-### TODO
+### On day...
+OpenSSL support
