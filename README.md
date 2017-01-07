@@ -16,6 +16,8 @@ If the server/client fails to start it could be caused by you using an ip/port t
 
 
 ## Packet Config
+Each packet is 512 bytes, BN means byte N of 512 in a packet.
+
 B1 is the ID of the packets action, this can be used in a switch or array of functions.
 ### Server to Client packets:
 |      Name      | B1 |   B2  | B3 to B512      |                                         Notes                                        |
