@@ -13,7 +13,7 @@ If the server/client fails to start it could be caused by you using an ip/port t
 
 
 ## Packet Config
-B1 is the ID of the packet, this can be used in a switch.
+B1 is the ID of the packets action, this can be used in a switch or array of functions.
 ### Server to Client packets:
 |      Name      | B1 |   B2  | B3 to B512      |                                         Notes                                        |
 |:--------------:|:--:|:-----:|-----------------|:------------------------------------------------------------------------------------:|
