@@ -1,7 +1,16 @@
 # IM system
 
-## Requirements
-Requires Enet to be installed, http://enet.bespin.org. On Linux and OSX it's a simple make install process.
+## Requirements & Setup
+Requires Enet to be linked, http://enet.bespin.org. On Linux and OSX it's a simple make install process. The makefiles included will link to a shared library, for Windows this may have to change.
+
+To build on OSX and Linux use the makefile provided.
+
+Start using './output ip port'
+
+Make sure the server has started before the client. 
+
+If the server/client fails to start it could be caused by you using an ip/port that's not available.
+
 
 ## Packet Config
 B1 is the ID of the packet, this can be used in a switch.
