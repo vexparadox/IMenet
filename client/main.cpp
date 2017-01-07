@@ -46,13 +46,21 @@ int main(int argc, char const *argv[])
         running.store(false);
     }
 
-    names = (char**)malloc(sizeof(char)*255*sizeof(char*));
+    //setup the usernames array
+    usernames = (char**)malloc(sizeof(char)*255*sizeof(char*));
     for(int i = 0; i < 255; i++){
-        names[i] = (char*)malloc(sizeof(char)*510);
-        memset(names[i], 0, 510);
+        usernames[i] = (char*)malloc(sizeof(char)*510);
+        memset(usernames[i], 0, 510);
     }
-    names[255] = "Server";
+    usernames[255] = "Server"; // set the special 255 to Server
+
+
+    //now get this users username and send it to the server
+    getUsername();
+
+    //start the input thread
     std::thread inputThread(&takeInput);
+    //start the main loop
     while(running.load() && connected){
         ENetEvent event;
         //wait upto half a second for an event
@@ -61,25 +69,13 @@ int main(int argc, char const *argv[])
             switch (event.type)
             {
             case ENET_EVENT_TYPE_RECEIVE:{
-                //if it's a message
-                if(event.packet->data[0] == 0){
-    		        printf ("%s: %s \n",
-    		                names[event.packet -> data[1]],
-    		                event.packet -> data+2
-    		                );
-                }else if (event.packet->data[0] == 1){
-                    //else if it's a new connection
-                    memcpy(names[event.packet->data[1]], event.packet->data+2, 510); 
-                    printf("New user with the name: %s\n", names[event.packet->data[1]]);
-                }
-                enet_packet_destroy (event.packet);
+                actions[event.packet->data[0]](&event);
             }break;
             case ENET_EVENT_TYPE_DISCONNECT:
                 printf ("%s disconnected.\n", event.peer->data);
                 event.peer -> data = NULL;
                 running.store(false);
                 break;
-
             case ENET_EVENT_TYPE_NONE:
                 break;
             }
@@ -89,6 +85,27 @@ int main(int argc, char const *argv[])
     inputThread.join();
     disconnect();
     return 0;
+}
+
+void getUsername(){
+    char buffer[510];
+    char message[512];
+    memset(buffer, 0, 510);
+    memset(message, 0, 512);
+    do{
+        printf("Username: ");
+        fgets(buffer, 510, stdin);
+    }while(strlen(buffer) <= 1);
+
+    message[0] = 1; // set this to a 1, means a new user
+    char* temp = buffer+strlen(buffer)-1; // remove the \n
+    *temp = '\0';
+    //copy the username to the buffer
+    memcpy(message+2, buffer, 510);
+    //send the username
+    ENetPacket* packet = enet_packet_create (message, 512, ENET_PACKET_FLAG_RELIABLE);
+    enet_peer_send (server.load(), 0, packet);         
+    enet_host_flush (client.load());
 }
 
 void takeInput(){
@@ -121,9 +138,29 @@ void takeInput(){
     }
 }
 
+
+void messageRecieved(ENetEvent* event){
+    //print the packet
+    printf ("%s: %s \n",
+            usernames[event->packet -> data[1]],
+            event->packet -> data+2
+            );
+    enet_packet_destroy (event->packet);
+}
+
+void newUser(ENetEvent* event){
+    //save the username that was given
+    memcpy(usernames[event->packet->data[1]], event->packet->data+2, 510); 
+    //print to tell the user
+    printf("New user with the name: %s\n", usernames[event->packet->data[1]]);
+    enet_packet_destroy (event->packet);
+}
+
+
 void disconnect(){
     ENetEvent event;
     enet_peer_disconnect (peer.load(), 0);
+
     /* Allow up to 3 seconds for the disconnect to succeed
     * and drop any packets received packets.
     */

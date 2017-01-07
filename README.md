@@ -2,13 +2,13 @@
 
 ## Packet Config
 B1 is the ID of the packet, this can be used in a switch.
-### Server sent packets:
+### Server to Client packets:
 |      Name      | B1 |   B2  | B3 to B510      |                                         Notes                                        |
 |:--------------:|:--:|:-----:|-----------------|:------------------------------------------------------------------------------------:|
 |     Message    |  0 | 0-255 | Message Content | B2 is userID followed by message.        |
 | New username |  1 | 0-255 | Username        | B2 is userID followed by username given. |
 
-### Client sent packets:
+### Client to Server packets:
 Note that B2 is used for UserIDs, the Client doesn't need to know about its own ID. This will be filled by the server. Leave B2 empty for clarity, it's ignored by the Server anyway.
 
 |   Name  | B1 |  B2  | B3 to B510      |                         Notes                        |

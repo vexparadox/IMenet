@@ -21,8 +21,14 @@ int main(int argc, char const *argv[])
     if (!host.load()) { printf("%s\n", "An error occurred while trying to create the server host."); }
     run.store(true);
     printf("Server was started on %s:%s, now listening for clients.\n", argv[1], argv[2]);
-    memset(usernamesGiven, 0, 512);
     std::thread inputThread(&takeInput);
+
+    //setup the usernames array
+    usernames = (char**)malloc(sizeof(char)*255*sizeof(char*));
+    for(int i = 0; i < 255; i++){
+        usernames[i] = (char*)malloc(sizeof(char)*510);
+        memset(usernames[i], 0, 510);
+    }
     while(run.load()){
         ENetEvent event;
         //wait upto half a second for an event
@@ -35,53 +41,32 @@ int main(int argc, char const *argv[])
 			        printf ("A new client connected from %x:%u.\n", 
 			                event.peer -> address.host,
 			                event.peer -> address.port);
-			        /* Store any relevant client information here. */
-					event.peer-> data = malloc(sizeof(char));
+                    //make space for the new users ID
+					event.peer->data = malloc(sizeof(char));
+                    //write the new client Count
 					*(char*)event.peer->data = clientCount;
-					printf("%x\n", *(char*)event.peer->data);
-					clientCount++;
-					char* welcome = "Welcome to the Server, your next message will become your username.";
-                    memcpy(broadcastMessage+2, welcome, strlen(welcome));
-                    broadcastMessage[0] = 0;
-                    broadcastMessage[1] = 255;
+					printf("New connection with ID of: %x\n", clientCount); // print the id
+					clientCount++; // increment the id
+                    broadcastMessage[0] = 0; //this is a message
+                    broadcastMessage[1] = 255; // say it's from the server
+                    char tempMessage[] = "Welcome to the Server.";
+                    //copy the welcome message
+                    memcpy(broadcastMessage+2, tempMessage, strlen(tempMessage)+1);
+                    //create a packet and send
 	        	    ENetPacket* packet = enet_packet_create (broadcastMessage, 512, ENET_PACKET_FLAG_RELIABLE);
 					enet_peer_send (event.peer, 0, packet);
 				    enet_host_flush (host.load());
                 }break;
             case ENET_EVENT_TYPE_RECEIVE:{
-                memset(broadcastMessage, 0, 512);
-                //the server only listens to messages, aka[0] == 0
-                if(event.packet->data[0] == 0){
-                    //if the user hasn't given a username yet
-                    if(usernamesGiven[*(char*)event.peer->data] != 1){
-                        broadcastMessage[0] = 1;
-                        memcpy(broadcastMessage+1, event.peer->data, sizeof(char));
-                        memcpy(broadcastMessage+2, event.packet->data+2, 510);
-                        usernamesGiven[*(char*)event.peer->data] = 1;
-                        printf("New user with name: %s\n", event.packet->data+2);
-                    }else{
-                        //if they have, just rebroadcast the message
-        		       	//send out the data to everyone else
-                        broadcastMessage[0] = 0; // set the type to a message
-        	       		memcpy(broadcastMessage+1, event.peer->data, sizeof(char)); // stick the id 2nd byte
-        		       	memcpy(broadcastMessage+2, event.packet->data+2, 510); // copy the message data
-        		        printf ("%x: %s \n",
-        		                broadcastMessage[1],
-        		                broadcastMessage+2
-        		                );
-                    }
-            	    ENetPacket* packet = enet_packet_create (broadcastMessage, 512, ENET_PACKET_FLAG_RELIABLE);
-    			    enet_host_broadcast (host.load(), 0, packet);
-    			    enet_host_flush (host.load());
-                    enet_packet_destroy (event.packet);
-                }
+                //call the action that corrosponds with the first byte
+                //see the READEME
+                actions[event.packet->data[0]](&event);
             }break;
             case ENET_EVENT_TYPE_DISCONNECT:
                 printf ("%s disconnected.\n", event.peer -> data);
                 event.peer -> data = NULL;
                 break;
             case ENET_EVENT_TYPE_NONE:
-
                 break;
             }
         }
@@ -90,7 +75,6 @@ int main(int argc, char const *argv[])
 
     enet_host_destroy(host);
     inputThread.join();
-	/* code */
 	return 0;
 }
 
@@ -121,4 +105,34 @@ void takeInput(){
         }
 
     }
+}
+
+void newUser(ENetEvent* event){
+    memset(broadcastMessage, 0, 512);
+    broadcastMessage[0] = 1;
+    broadcastMessage[1] = *(char*)event->peer->data;
+    memcpy(usernames[*(char*)event->peer->data], event->packet->data+2, 510); // save the new username
+    memcpy(broadcastMessage+2, event->packet->data+2, 510); // copy the new username for broadcast
+    printf("New user with name: %s\n", usernames[*(char*)event->peer->data]);
+    ENetPacket* packet = enet_packet_create (broadcastMessage, 512, ENET_PACKET_FLAG_RELIABLE);
+    enet_host_broadcast (host.load(), 0, packet);
+    enet_host_flush (host.load());
+    enet_packet_destroy (event->packet);
+}
+
+void messageRecieved(ENetEvent* event){
+    memset(broadcastMessage, 0, 512);
+    //if they have, just rebroadcast the message
+    //send out the data to everyone else
+    memcpy(broadcastMessage, event->packet->data, 512); // copy the message data
+    broadcastMessage[1] = *(char*)event->peer->data; // stick the id in the second byte
+    //print on the server
+    printf ("%s: %s \n",
+            usernames[broadcastMessage[1]], // the users id
+            broadcastMessage+2 // the users message
+            );
+    ENetPacket* packet = enet_packet_create (broadcastMessage, 512, ENET_PACKET_FLAG_RELIABLE);
+    enet_host_broadcast (host.load(), 0, packet);
+    enet_host_flush (host.load());
+    enet_packet_destroy (event->packet);
 }

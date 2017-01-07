@@ -6,10 +6,21 @@
 #include <atomic>
 #include <thread>
 
+//type def functions 
+typedef void (* Action)(ENetEvent* event);
+
 ENetAddress serverAddress;
-std::atomic<ENetHost*> host;
-std::atomic<bool> run;
-char clientCount;
-char* broadcastMessage;
-int usernamesGiven[512];
+std::atomic<ENetHost*> host; // the Enet Host
+std::atomic<bool> run; //the running bool
+char clientCount; // the current count of users
+char* broadcastMessage; // the char* that's used to broadcast messages
+char** usernames; // a set of bools if the usernames have 
 void takeInput();
+void messageRecieved(ENetEvent* event);
+void newUser(ENetEvent* event);
+
+//a list of actions
+Action actions[] = {
+	messageRecieved,
+	newUser
+};
