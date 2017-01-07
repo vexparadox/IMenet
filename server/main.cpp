@@ -38,9 +38,9 @@ int main(int argc, char const *argv[])
 			        /* Store any relevant client information here. */
 					event.peer-> data = malloc(sizeof(char));
 					*(char*)event.peer->data = clientCount;
-					printf("%x\n", (char*)event.peer->data);
+					printf("%x\n", *(char*)event.peer->data);
 					clientCount++;
-					char* welcome = "Welcome to the Server, please supply a username.";
+					char* welcome = "Welcome to the Server, your next message will become your username.";
                     memcpy(broadcastMessage+2, welcome, strlen(welcome));
                     broadcastMessage[0] = 0;
                     broadcastMessage[1] = 255;
@@ -50,22 +50,21 @@ int main(int argc, char const *argv[])
                 }break;
             case ENET_EVENT_TYPE_RECEIVE:{
                 memset(broadcastMessage, 0, 512);
-                //the server only listens to messages given aka[0]
+                //the server only listens to messages, aka[0] == 0
                 if(event.packet->data[0] == 0){
                     //if the user hasn't given a username yet
-                    if(!usernamesGiven[*(char*)event.peer->data]){
+                    if(usernamesGiven[*(char*)event.peer->data] != 1){
                         broadcastMessage[0] = 1;
                         memcpy(broadcastMessage+1, event.peer->data, sizeof(char));
                         memcpy(broadcastMessage+2, event.packet->data+2, 510);
                         usernamesGiven[*(char*)event.peer->data] = 1;
                         printf("New user with name: %s\n", event.packet->data+2);
                     }else{
-                        //if they ahve, just rebroadcast the message
+                        //if they have, just rebroadcast the message
         		       	//send out the data to everyone else
-        	       		memcpy(broadcastMessage, event.peer->data, sizeof(char)); // stick the id at the start[]
-        		       	memcpy(broadcastMessage+1, event.packet->data+2, 510); // copy the data
-        		       	broadcastMessage[event.packet->dataLength+1] = '\0';
-
+                        broadcastMessage[0] = 0; // set the type to a message
+        	       		memcpy(broadcastMessage+1, event.peer->data, sizeof(char)); // stick the id 2nd byte
+        		       	memcpy(broadcastMessage+2, event.packet->data+2, 510); // copy the message data
         		        printf ("%x: %s \n",
         		                broadcastMessage[1],
         		                broadcastMessage+2
@@ -103,9 +102,9 @@ void takeInput(){
     while (run.load()){
         fgets(buffer+2, sizeof(buffer), stdin);
         //get rid of that pesky \n
-        char* temp = buffer+strlen(buffer)-1;
+        char* temp = buffer+strlen(buffer+2)-1;
         *temp = '\0';
-        buffer[0] = 0; // set the ID to 255, this is reserved for the server
+        buffer[0] = 0; // set the packet type to message
         buffer[1] = 255; // set the ID to 255, this is reserved for the server
         if(strcmp(buffer, "") != 0){
             // controller->takeInput(buffer);

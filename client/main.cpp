@@ -49,6 +49,7 @@ int main(int argc, char const *argv[])
     names = (char**)malloc(sizeof(char)*255*sizeof(char*));
     for(int i = 0; i < 255; i++){
         names[i] = (char*)malloc(sizeof(char)*510);
+        memset(names[i], 0, 510);
     }
     names[255] = "Server";
     std::thread inputThread(&takeInput);
@@ -62,7 +63,7 @@ int main(int argc, char const *argv[])
             case ENET_EVENT_TYPE_RECEIVE:{
                 //if it's a message
                 if(event.packet->data[0] == 0){
-    		        printf ("%x: %s \n",
+    		        printf ("%s: %s \n",
     		                names[event.packet -> data[1]],
     		                event.packet -> data+2
     		                );
@@ -70,8 +71,8 @@ int main(int argc, char const *argv[])
                     //else if it's a new connection
                     memcpy(names[event.packet->data[1]], event.packet->data+2, 510); 
                     printf("New user with the name: %s\n", names[event.packet->data[1]]);
-                    enet_packet_destroy (event.packet);
                 }
+                enet_packet_destroy (event.packet);
             }break;
             case ENET_EVENT_TYPE_DISCONNECT:
                 printf ("%s disconnected.\n", event.peer->data);
@@ -91,20 +92,26 @@ int main(int argc, char const *argv[])
 }
 
 void takeInput(){
-    char buffer[512];
+    char message[512];
+    char buffer[510];
     while (running.load()){
-        fgets(buffer+2, 510, stdin);
+        //clear the buffer and message
+        memset(buffer, 0, 510);
+        memset(message, 0, 512);
+        //get the buffer
+        fgets(buffer, 510, stdin);
         //get rid of that pesky \n
         char* temp = buffer+strlen(buffer)-1;
         *temp = '\0';
-        buffer[0] = 0; // tell the server it's a message
-        buffer[1] = 0; // the second byte is ignored by the server, it's filled with the userID when it's resent out
+        //set the params of the message
+        message[0] = 0; // tell the server it's a message
+        message[1] = 0; // the second byte is ignored by the server, it's filled with the userID when it's resent out
         if(strcmp(buffer, "") != 0){
-            // controller->takeInput(buffer);
             if(strcmp(buffer, "exit") == 0){
         		running.store(false);
         	}else{
-        	    ENetPacket* packet = enet_packet_create (buffer, 512, ENET_PACKET_FLAG_RELIABLE);
+                memcpy(message+2, buffer, 510); // copy the buffered string into the message
+        	    ENetPacket* packet = enet_packet_create (message, 512, ENET_PACKET_FLAG_RELIABLE);
 			    enet_peer_send (server.load(), 0, packet);         
 			    enet_host_flush (client.load());
 			    printf("\033[1A"); //go up one line

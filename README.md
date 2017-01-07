@@ -2,13 +2,19 @@
 
 ## Packet Config
 
-### Client recieved packets:
+### Server sent packets:
 |      Name      | B1 |   B2  | B3 to B510      |                                         Notes                                        |
 |:--------------:|:--:|:-----:|-----------------|:------------------------------------------------------------------------------------:|
 |     Message    |  0 | 0-255 | Message Content | B2 is userID followed by message.        |
-| New Connection |  1 | 0-255 | Username        | B2 is userID followed by username given. |
+| New username |  1 | 0-255 | Username        | B2 is userID followed by username given. |
 
-### Server recieved packets:
+### Client sent packets:
 |   Name  | B1 |  B2  | B3 to B510      |                         Notes                        |
 |:-------:|:--:|:----:|-----------------|:----------------------------------------------------:|
 | Message |  0 | NULL | Message Content | B2 is filled by the Server when broadcast to clients |
+| Username |  1 | NULL | Username | B3-B510 is saved and broadcast to other clients |
+
+### TODO
+Implement the Client Sent Username packet
+
+Make sure new clients are told about the older clients
