@@ -35,7 +35,7 @@ int main(int argc, char const *argv[])
     if (enet_host_service (client.load(), &event, 2000) > 0 &&
         event.type == ENET_EVENT_TYPE_CONNECT)
     {
-    	printf("Connection to %s:%s succeeded on channel 0.\n", argv[1], argv[2]);
+    	printf("Connection to %s:%s succeeded.\n", argv[1], argv[2]);
         connected = true;
         server.store(event.peer);
         getUsername();
@@ -134,6 +134,10 @@ void takeInput(){
     }
 }
 
+void userDisconnected(ENetEvent* event){
+    printf("%s has disconnected.\n", usernames[event->packet->data[1]]);
+    memset(usernames[event->packet->data[1]], 0, 255);
+}
 
 void messageRecieved(ENetEvent* event){
     //print the packet
@@ -152,11 +156,9 @@ void newUser(ENetEvent* event){
     enet_packet_destroy (event->packet);
 }
 
-
 void disconnect(){
     ENetEvent event;
     enet_peer_disconnect (peer.load(), 0);
-
     /* Allow up to 3 seconds for the disconnect to succeed
     * and drop any packets received packets.
     */

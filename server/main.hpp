@@ -18,6 +18,8 @@ char** usernames; // a set of bools if the usernames have
 void takeInput();
 void messageRecieved(ENetEvent* event);
 void newUser(ENetEvent* event);
+void userDisconnected(ENetEvent* event);
+void sendBroadcast();
 
 //a list of actions
 Action actions[] = {

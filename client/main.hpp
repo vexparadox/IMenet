@@ -21,9 +21,11 @@ void takeInput();
 void getUsername();
 void messageRecieved(ENetEvent* event);
 void newUser(ENetEvent* event);
+void userDisconnected(ENetEvent* event);
 
 //a list of actions
 Action actions[] = {
 	messageRecieved,
-	newUser
+	newUser,
+	userDisconnected
 };

@@ -76,11 +76,7 @@ int main(int argc, char const *argv[])
                 actions[event.packet->data[0]](&event);
             }break;
             case ENET_EVENT_TYPE_DISCONNECT:
-                //print the disconnect
-                printf ("%s disconnected.\n", 
-                    usernames[*(char*)event.peer->data]);
-                memset(usernames[*(char*)event.peer->data], 0, 510); // remove the username
-                event.peer -> data = NULL; // set to NULL
+                userDisconnected(&event);
                 break;
             case ENET_EVENT_TYPE_NONE:
                 break;
@@ -124,6 +120,24 @@ void takeInput(){
     }
 }
 
+void sendBroadcast(){
+    ENetPacket* packet = enet_packet_create (broadcastMessage, 512, ENET_PACKET_FLAG_RELIABLE);
+    enet_host_broadcast (host.load(), 0, packet);
+    enet_host_flush (host.load());
+}
+
+void userDisconnected(ENetEvent* event){
+    //print the disconnect
+    printf ("%s disconnected.\n", 
+    usernames[*(char*)event->peer->data]);
+    memset(usernames[*(char*)event->peer->data], 0, 510); // remove the username
+    memset(broadcastMessage, 0, 512);
+    broadcastMessage[0] = 2;
+    memcpy(broadcastMessage+1, event->peer->data, 1);
+    sendBroadcast(); // send the broadcast
+    event->peer->data = NULL;
+}
+
 void newUser(ENetEvent* event){
     memset(broadcastMessage, 0, 512);
     broadcastMessage[0] = 1;
@@ -131,9 +145,7 @@ void newUser(ENetEvent* event){
     memcpy(usernames[*(char*)event->peer->data], event->packet->data+2, 510); // save the new username
     memcpy(broadcastMessage+2, event->packet->data+2, 510); // copy the new username for broadcast
     printf("New user with name: %s\n", usernames[*(char*)event->peer->data]);
-    ENetPacket* packet = enet_packet_create (broadcastMessage, 512, ENET_PACKET_FLAG_RELIABLE);
-    enet_host_broadcast (host.load(), 0, packet);
-    enet_host_flush (host.load());
+    sendBroadcast();
     enet_packet_destroy (event->packet);
 }
 
@@ -148,8 +160,6 @@ void messageRecieved(ENetEvent* event){
             usernames[broadcastMessage[1]], // the users id
             broadcastMessage+2 // the users message
             );
-    ENetPacket* packet = enet_packet_create (broadcastMessage, 512, ENET_PACKET_FLAG_RELIABLE);
-    enet_host_broadcast (host.load(), 0, packet);
-    enet_host_flush (host.load());
+    sendBroadcast();
     enet_packet_destroy (event->packet);
 }

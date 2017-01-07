@@ -21,4 +21,3 @@ Note that B2 is used for UserIDs, the Client doesn't need to know about its own 
 | Username |  1 | NULL | Username | B3-B510 is saved and broadcast to other clients |
 
 ### TODO
-implement user disconnected
