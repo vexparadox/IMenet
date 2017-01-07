@@ -1,4 +1,7 @@
-## IM system
+# IM system
+
+## Requirements
+Requires Enet to be installed, http://enet.bespin.org. On Linux and OSX it's a simple make install process.
 
 ## Packet Config
 B1 is the ID of the packet, this can be used in a switch.
@@ -17,6 +20,4 @@ Note that B2 is used for UserIDs, the Client doesn't need to know about its own 
 | Username |  1 | NULL | Username | B3-B510 is saved and broadcast to other clients |
 
 ### TODO
-Implement the Client Sent Username packet
-
-Make sure new clients are told about the older clients
+Make sure new clients are told about the older clients, currently newer clients don't know old usernames
