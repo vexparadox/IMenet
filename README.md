@@ -36,3 +36,7 @@ Note that B2 is used for UserIDs, the Client doesn't need to know about its own 
 
 ### One day...
 OpenSSL support
+
+Change packet size to a defined constant, it's messy with literals all over
+
+Add a server disconnect packet, S->C. Could use the User Disconnected packet, special case for 255 (Server ID)
