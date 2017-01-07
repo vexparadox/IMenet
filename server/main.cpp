@@ -56,6 +56,19 @@ int main(int argc, char const *argv[])
 	        	    ENetPacket* packet = enet_packet_create (broadcastMessage, 512, ENET_PACKET_FLAG_RELIABLE);
 					enet_peer_send (event.peer, 0, packet);
 				    enet_host_flush (host.load());
+
+                    //tell the new user about old ones
+                    for(int i = 0; i < 255; i++){
+                        if(strlen(usernames[i]) != 0){
+                            memset(broadcastMessage, 0, 512);
+                            broadcastMessage[0] = 1;
+                            broadcastMessage[1] = i;
+                            memcpy(broadcastMessage+2, usernames[i], 510);
+                            ENetPacket* packet = enet_packet_create (broadcastMessage, 512, ENET_PACKET_FLAG_RELIABLE);
+                            enet_peer_send (event.peer, 0, packet);
+                            enet_host_flush (host.load());
+                        }
+                    }
                 }break;
             case ENET_EVENT_TYPE_RECEIVE:{
                 //call the action that corrosponds with the first byte
@@ -63,8 +76,11 @@ int main(int argc, char const *argv[])
                 actions[event.packet->data[0]](&event);
             }break;
             case ENET_EVENT_TYPE_DISCONNECT:
-                printf ("%s disconnected.\n", event.peer -> data);
-                event.peer -> data = NULL;
+                //print the disconnect
+                printf ("%s disconnected.\n", 
+                    usernames[*(char*)event.peer->data]);
+                memset(usernames[*(char*)event.peer->data], 0, 510); // remove the username
+                event.peer -> data = NULL; // set to NULL
                 break;
             case ENET_EVENT_TYPE_NONE:
                 break;
@@ -79,28 +95,29 @@ int main(int argc, char const *argv[])
 }
 
 void takeInput(){
-    // std::string buffer;
-    //lets create a packet
-    //512 bytes, 255 usable with 1 for ID
-    char buffer[512];
+    char message[512];
+    char buffer[510];
     while (run.load()){
-        fgets(buffer+2, sizeof(buffer), stdin);
+        memset(message, 0, 512);
+        memset(buffer, 0, 510);
+        fgets(buffer, 510, stdin);
         //get rid of that pesky \n
-        char* temp = buffer+strlen(buffer+2)-1;
+        char* temp = buffer+strlen(buffer)-1;
         *temp = '\0';
-        buffer[0] = 0; // set the packet type to message
-        buffer[1] = 255; // set the ID to 255, this is reserved for the server
+        message[0] = 0; // set the packet type to message
+        message[1] = 255; // set the ID to 255, this is reserved for the server
         if(strcmp(buffer, "") != 0){
             // controller->takeInput(buffer);
             if(strcmp(buffer, "exit") == 0){
         		run.store(false);
         	}else{
-        	    ENetPacket* packet = enet_packet_create (buffer, 512, ENET_PACKET_FLAG_RELIABLE);
+                memcpy(message+2, buffer, 510);
+        	    ENetPacket* packet = enet_packet_create (message, 512, ENET_PACKET_FLAG_RELIABLE);
 			    enet_host_broadcast (host.load(), 0, packet);         
 			    enet_host_flush (host.load());	
 			    printf("\033[1A"); //go up one line
 			    printf("\033[K"); //delete to the end of the line
-			    printf("\rServer: %s\n", buffer+1); // use \r to get back to the start and print
+			    printf("\rServer: %s\n", message+2); // use \r to get back to the start and print
         	}
         }
 

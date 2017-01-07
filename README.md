@@ -10,6 +10,7 @@ B1 is the ID of the packet, this can be used in a switch.
 |:--------------:|:--:|:-----:|-----------------|:------------------------------------------------------------------------------------:|
 |     Message    |  0 | 0-255 | Message Content | B2 is userID followed by message.        |
 | New username |  1 | 0-255 | Username        | B2 is userID followed by username given. |
+| User disconnected |  2 | 0-255 | NULL        | B2 has disconnected |
 
 ### Client to Server packets:
 Note that B2 is used for UserIDs, the Client doesn't need to know about its own ID. This will be filled by the server. Leave B2 empty for clarity, it's ignored by the Server anyway.
@@ -20,4 +21,4 @@ Note that B2 is used for UserIDs, the Client doesn't need to know about its own 
 | Username |  1 | NULL | Username | B3-B510 is saved and broadcast to other clients |
 
 ### TODO
-Make sure new clients are told about the older clients, currently newer clients don't know old usernames
+implement user disconnected

@@ -37,8 +37,8 @@ int main(int argc, char const *argv[])
     {
     	printf("Connection to %s:%s succeeded on channel 0.\n", argv[1], argv[2]);
         connected = true;
-        event.peer -> data = (void*)"Server";
         server.store(event.peer);
+        getUsername();
     }else{
         enet_peer_reset (peer.load());
         connected = false;
@@ -54,10 +54,6 @@ int main(int argc, char const *argv[])
     }
     usernames[255] = "Server"; // set the special 255 to Server
 
-
-    //now get this users username and send it to the server
-    getUsername();
-
     //start the input thread
     std::thread inputThread(&takeInput);
     //start the main loop
@@ -72,7 +68,7 @@ int main(int argc, char const *argv[])
                 actions[event.packet->data[0]](&event);
             }break;
             case ENET_EVENT_TYPE_DISCONNECT:
-                printf ("%s disconnected.\n", event.peer->data);
+                printf ("%s disconnected.\n", usernames[*(char*)event.peer->data]);
                 event.peer -> data = NULL;
                 running.store(false);
                 break;
@@ -164,6 +160,7 @@ void disconnect(){
     /* Allow up to 3 seconds for the disconnect to succeed
     * and drop any packets received packets.
     */
+    printf("Attempting disconnect... \n");
     while (enet_host_service (client.load(), & event, 3000) > 0)
     {
         switch (event.type)
