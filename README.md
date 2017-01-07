@@ -5,7 +5,7 @@ Requires Enet to be linked, http://enet.bespin.org. On Linux and OSX it's a simp
 
 To build on OSX and Linux use the makefile provided.
 
-Start using './output ip port'
+Start using `./output ip port`
 
 Make sure the server has started before the client. 
 
