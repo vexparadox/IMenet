@@ -52,8 +52,11 @@ int main(int argc, char const *argv[])
                     char tempMessage[] = "Welcome to the Server.";
                     //copy the welcome message
                     memcpy(broadcastMessage+2, tempMessage, strlen(tempMessage)+1);
-                    sendBroadcast();
-                    
+                    //create a packet and send
+	        	    ENetPacket* packet = enet_packet_create (broadcastMessage, 512, ENET_PACKET_FLAG_RELIABLE);
+					enet_peer_send (event.peer, 0, packet);
+				    enet_host_flush (host.load());
+
                     //tell the new user about old ones
                     for(int i = 0; i < 255; i++){
                         if(strlen(usernames[i]) != 0){
@@ -61,7 +64,9 @@ int main(int argc, char const *argv[])
                             broadcastMessage[0] = 1;
                             broadcastMessage[1] = i;
                             memcpy(broadcastMessage+2, usernames[i], 510);
-                            sendBroadcast();
+                            ENetPacket* packet = enet_packet_create (broadcastMessage, 512, ENET_PACKET_FLAG_RELIABLE);
+                            enet_peer_send (event.peer, 0, packet);
+                            enet_host_flush (host.load());
                         }
                     }
                 }break;
