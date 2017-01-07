@@ -1,7 +1,7 @@
 ## IM system
 
 ## Packet Config
-
+B1 is the ID of the packet, this can be used in a switch.
 ### Server sent packets:
 |      Name      | B1 |   B2  | B3 to B510      |                                         Notes                                        |
 |:--------------:|:--:|:-----:|-----------------|:------------------------------------------------------------------------------------:|
