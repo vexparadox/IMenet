@@ -6,7 +6,7 @@ Blog post coming soon.
 ## Requirements & Setup
 Requires Enet to be linked, http://enet.bespin.org. On Linux and OSX it's a simple make install process. The makefiles included will link to a shared library, for Windows this may have to change.
 
-To build on OSX and Linux use the makefile provided.
+To build on OSX (standalone included) and Linux use the makefile provided.
 
 Start using `./output ip port`
 
