@@ -18,7 +18,10 @@ int main(int argc, char const *argv[])
     serverAddress.port = atoi(argv[2]);
 
     host.store(enet_host_create (&serverAddress, 32, 2, 0, 0));
-    if (!host.load()) { printf("%s\n", "An error occurred while trying to create the server host."); }
+    if (!host.load()) { 
+        printf("%s\n", "An error occurred while trying to create the server host."); 
+        return EXIT_FAILURE;
+    }
     run.store(true);
     printf("Server was started on %s:%s, now listening for clients.\n", argv[1], argv[2]);
     std::thread inputThread(&takeInput);
