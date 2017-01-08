@@ -4,7 +4,7 @@ This is a micro instant messaging system, there's a server and client side. User
 Blog post coming soon.
 
 ## Requirements & Setup
-If you're compiling from scratch you'll need the Enet library to be linked, http://enet.bespin.org. On Linux and OSX it's a simple make install process. The makefiles included will link to a shared library, for Windows this may have to change.
+If you're compiling from scratch you'll need the Enet library to be linked, http://enet.bespin.org. On Linux and OSX it's a simple make install process, it's also available on HomeBrew `brew install enet`.
 
 If you're using the pre-compiled OSX Standalone, skip to the second step
 
