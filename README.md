@@ -4,15 +4,17 @@ This is a micro instant messaging system, there's a server and client side. User
 Blog post coming soon.
 
 ## Requirements & Setup
-Requires Enet to be linked, http://enet.bespin.org. On Linux and OSX it's a simple make install process. The makefiles included will link to a shared library, for Windows this may have to change.
+If you're compiling from scratch you'll need the Enet library to be linked, http://enet.bespin.org. On Linux and OSX it's a simple make install process. The makefiles included will link to a shared library, for Windows this may have to change.
 
-To build on OSX (standalone included) and Linux use the makefile provided.
+If you're using the pre-compiled OSX Standalone, skip to the 2
 
-Start using `./output ip port`
+* To build on OSX (standalone included) and Linux use the makefile provided.
 
-Make sure the server has started before the client. 
+* Start using `./output ip port` or `./OSXStandaloneClient ip port` if you're using the precompiled standalone
 
-If the server/client fails to start it could be caused by you using an ip/port that's not available.
+* Make sure the server has started before the client. 
+
+NB - If the server/client fails to start it could be caused by you using an ip/port that's not available.
 
 
 ## Packet Config
