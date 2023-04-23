@@ -26,25 +26,38 @@ namespace IMenet
             return false;
         }
 
-        m_client.store(enet_host_create(NULL, 1, 2, 57600 / 8, 57600 / 8));
-        if (m_client.load() == nullptr)
+        {
+            constexpr uint32_t peer_count = 1;
+            constexpr uint32_t channel_limit = 2;
+            constexpr uint32_t incoming_bandwidth = 0; // infinite
+            constexpr uint32_t outgoing_bandwidth = 0; // infinite
+            const ENetAddress *address = nullptr;      // Means no one can connect to this host
+            m_client = enet_host_create(address, peer_count, channel_limit, incoming_bandwidth, outgoing_bandwidth);
+        }
+
+        if (m_client == nullptr)
         {
             return false;
         }
 
-        m_peer.store(enet_host_connect(m_client.load(), &m_server_address, 2, 0));
-        enet_host_flush(m_client.load());
+        {
+            constexpr int32_t channel_count = 2;
+            constexpr int32_t user_data = 0;
+            m_peer = enet_host_connect(m_client, &m_server_address, channel_count, user_data);
+        }
+        enet_host_flush(m_client);
 
         ENetEvent event;
-        if (enet_host_service(m_client.load(), &event, 2000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT)
+        constexpr int32_t connect_timeout_ms = 2000;
+        if (enet_host_service(m_client, &event, connect_timeout_ms) > 0 && event.type == ENET_EVENT_TYPE_CONNECT)
         {
             printf("Connection succeeded.\n");
-            m_server.store(event.peer);
+            m_server = event.peer;
             get_username_from_cli(); // blocking.. needs to move #TODO
         }
         else
         {
-            enet_peer_reset(m_peer.load());
+            enet_peer_reset(m_peer);
             return false;
             printf("%s\n", "Failed to connect.");
         }
@@ -59,7 +72,8 @@ namespace IMenet
                                    {
                                        ENetEvent event;
                                        // wait upto half a second for an event
-                                       while (enet_host_service(m_client.load(), &event, 500) > 0)
+                                       constexpr int32_t poll_timeout_ms = 500;
+                                       while (enet_host_service(m_client, &event, poll_timeout_ms) > 0)
                                        {
                                            switch (event.type)
                                            {
@@ -97,9 +111,10 @@ namespace IMenet
                                            case ENET_EVENT_TYPE_DISCONNECT:
                                            {
                                                printf("Unexpectedly disconnected from the server!.\n");
-                                               m_server.store(nullptr);
-                                               m_peer.store(nullptr);
-                                               m_running.store(false);
+                                               // #TODO delete here?
+                                               m_server = nullptr;
+                                               m_peer = nullptr;
+                                               m_running = false;
                                                break;
                                            }
                                            case ENET_EVENT_TYPE_CONNECT:
@@ -131,8 +146,8 @@ namespace IMenet
             m_server_message.write((uint8_t)0); // unused, the server works out who this user is based on their connection
             m_server_message.write(message);
             ENetPacket *packet = enet_packet_create(m_server_message.buffer(), m_server_message.size(), ENET_PACKET_FLAG_RELIABLE);
-            enet_peer_send(m_server.load(), 0, packet);
-            enet_host_flush(m_client.load());
+            enet_peer_send(m_server, 0, packet);
+            enet_host_flush(m_client);
         }
         m_pending_messages.clear();
     }
@@ -161,12 +176,12 @@ namespace IMenet
     void Client::disconnect()
     {
         ENetEvent event;
-        enet_peer_disconnect(m_peer.load(), 0);
+        enet_peer_disconnect(m_peer, 0);
         /* Allow up to 3 seconds for the disconnect to succeed
          * and drop any packets received packets.
          */
         printf("Attempting disconnect... \n");
-        while (enet_host_service(m_client.load(), &event, 3000) > 0)
+        while (enet_host_service(m_client, &event, 3000) > 0)
         {
             switch (event.type)
             {
@@ -180,7 +195,7 @@ namespace IMenet
                 break;
             }
             // reset if we reach here, this is a forcefull disconnect
-            enet_peer_reset(m_peer.load());
+            enet_peer_reset(m_peer);
         }
     }
 
@@ -235,8 +250,8 @@ namespace IMenet
 
         // send the username
         ENetPacket *packet = enet_packet_create(message.buffer(), message.size(), ENET_PACKET_FLAG_RELIABLE);
-        enet_peer_send(m_server.load(), 0, packet);
-        enet_host_flush(m_client.load());
+        enet_peer_send(m_server, 0, packet);
+        enet_host_flush(m_client);
     }
 
 }

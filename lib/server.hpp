@@ -23,7 +23,7 @@ namespace IMenet
 
 		ENetAddress m_server_address;
 		uint8_t m_client_count{};
-		std::atomic<ENetHost*> m_host{};
+		ENetHost* m_host{};
 		std::atomic<bool> m_running{};
 		std::vector<std::string> m_usernames;
 

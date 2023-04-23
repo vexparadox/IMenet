@@ -26,8 +26,8 @@ namespace IMenet
             return false;
         }
 
-        m_host.store(enet_host_create(&m_server_address, 32, 2, 0, 0));
-        if (m_host.load() == nullptr)
+        m_host = enet_host_create(&m_server_address, 32, 2, 0, 0);
+        if (m_host == nullptr)
         {
             return false;
         }
@@ -39,8 +39,8 @@ namespace IMenet
             while(m_running.load())
             {
                 ENetEvent event;
-                //wait upto half a second for an event
-                while (enet_host_service (m_host.load(), &event, 150) > 0)
+                constexpr int32_t poll_timeout_ms = 150;
+                while (enet_host_service (m_host, &event, poll_timeout_ms) > 0)
                 {
                     switch (event.type)
                     {
@@ -61,7 +61,7 @@ namespace IMenet
                             //create a packet and send
                             ENetPacket* welcome_packet = enet_packet_create(m_broadcast_message.buffer(), m_broadcast_message.size(), ENET_PACKET_FLAG_RELIABLE);
                             enet_peer_send(event.peer, 0, welcome_packet);
-                            enet_host_flush(m_host.load());
+                            enet_host_flush(m_host);
 
                             //tell the new user about existing users
                             // #TODO user id isn't capped here at 255
@@ -75,7 +75,7 @@ namespace IMenet
                                     m_broadcast_message.write(get_username(i));
                                     ENetPacket* username_packet = enet_packet_create(m_broadcast_message.buffer(), m_broadcast_message.size(), ENET_PACKET_FLAG_RELIABLE);
                                     enet_peer_send(event.peer, 0, username_packet);
-                                    enet_host_flush(m_host.load());
+                                    enet_host_flush(m_host);
                                 }
                             }
                             break;
@@ -130,8 +130,8 @@ namespace IMenet
                         if(m_broadcast_message.size() > 0)
                         {
                             ENetPacket* packet = enet_packet_create(m_broadcast_message.buffer(), m_broadcast_message.size(), ENET_PACKET_FLAG_RELIABLE);
-                            enet_host_broadcast(m_host.load(), 0, packet);
-                            enet_host_flush(m_host.load());
+                            enet_host_broadcast(m_host, 0, packet);
+                            enet_host_flush(m_host);
                         }
                         enet_packet_destroy(event.packet);
                         break;
@@ -146,8 +146,8 @@ namespace IMenet
                         m_broadcast_message.write(uint8_t(ServerActionType::USER_DISCONNECTED));
                         m_broadcast_message.write(user_id);
                         ENetPacket* packet = enet_packet_create(m_broadcast_message.buffer(), m_broadcast_message.size(), ENET_PACKET_FLAG_RELIABLE);
-                        enet_host_broadcast (m_host.load(), 0, packet);
-                        enet_host_flush (m_host.load());
+                        enet_host_broadcast (m_host, 0, packet);
+                        enet_host_flush (m_host);
                         event.peer->data = nullptr;
                         break;
                     }
@@ -157,7 +157,7 @@ namespace IMenet
                 }
                 send_pending_messages();
             }
-            enet_host_destroy(m_host.load()); });
+            enet_host_destroy(m_host); });
         return true;
     }
 
@@ -177,8 +177,8 @@ namespace IMenet
             m_broadcast_message.write(uint8_t(255));
             m_broadcast_message.write(message);
             ENetPacket *packet = enet_packet_create(m_broadcast_message.buffer(), m_broadcast_message.size(), ENET_PACKET_FLAG_RELIABLE);
-            enet_host_broadcast(m_host.load(), 0, packet);
-            enet_host_flush(m_host.load());
+            enet_host_broadcast(m_host, 0, packet);
+            enet_host_flush(m_host);
         }
         m_pending_messages.clear();
     }

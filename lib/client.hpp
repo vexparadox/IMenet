@@ -24,9 +24,9 @@ namespace IMenet
         void disconnect();
 
 		ENetAddress m_server_address;
-        std::atomic<ENetHost*> m_client;
-        std::atomic<ENetPeer*> m_peer;
-        std::atomic<ENetPeer*> m_server;
+        ENetHost* m_client{};
+        ENetPeer* m_peer{};
+        ENetPeer* m_server{};
 
 		std::atomic<bool> m_running{};
 		std::vector<std::string> m_usernames;
