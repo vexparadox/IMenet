@@ -64,7 +64,7 @@ namespace IMenet
 
         m_usernames[255] = "Server"; // special case for the server's id
 
-        m_running.store(true);
+        m_running = true;
 
         m_thread = std::thread([&]()
                                {
@@ -111,7 +111,8 @@ namespace IMenet
                                            case ENET_EVENT_TYPE_DISCONNECT:
                                            {
                                                printf("Unexpectedly disconnected from the server!.\n");
-                                               // #TODO delete here?
+                                               enet_host_destroy(m_client);
+                                               m_client = nullptr;
                                                m_server = nullptr;
                                                m_peer = nullptr;
                                                m_running = false;
@@ -159,7 +160,7 @@ namespace IMenet
 
     void Client::stop()
     {
-        m_running.store(false);
+        m_running = false;
         m_thread.join();
     }
 
@@ -190,37 +191,40 @@ namespace IMenet
                 break;
             case ENET_EVENT_TYPE_DISCONNECT:
                 printf("%s\n", "Disconnection succeeded");
+                enet_host_destroy(m_client);
+                m_client = nullptr;
+                m_server = nullptr;
+                m_peer = nullptr;
                 return;
             default:
                 break;
             }
             // reset if we reach here, this is a forcefull disconnect
             enet_peer_reset(m_peer);
+            break;
         }
     }
 
     void start_input_loop(IMenet::Client &client)
     {
-        char buffer[510];
+        std::array<char, 510> buffer{};
         while (client.is_running())
         {
-            memset(buffer, 0, 510);
-            if (fgets(buffer, 510, stdin) == nullptr)
+            if (fgets(buffer.data(), buffer.size(), stdin) == nullptr)
             {
                 continue;
             }
-            // get rid of that pesky \n
-            char *temp = buffer + strlen(buffer) - 1;
-            *temp = '\0';
-            if (strcmp(buffer, "") != 0)
+            std::string message = buffer.data();
+            if (message.length() > 1)
             {
-                if (strcmp(buffer, "exit") == 0)
+                message.pop_back(); // remove the \n
+                if (message == "exit")
                 {
                     client.stop();
                 }
                 else
                 {
-                    client.send_message({&buffer[0]});
+                    client.send_message(std::move(message));
                     printf("\033[1A"); // go up one line
                     printf("\033[K");  // delete to the end of the line
                 }
@@ -231,22 +235,26 @@ namespace IMenet
     void Client::get_username_from_cli()
     {
         OwningMessageBuffer message{512};
-        char buffer[510];
-        memset(buffer, 0, 510);
+        std::array<char, 510> buffer;
+        std::string username;
         do
         {
+            buffer = {}; // clear the buffer
             printf("Username: ");
-            fgets(buffer, 510, stdin);
-        } while (strlen(buffer) <= 1);
+            if(fgets(buffer.data(), buffer.size(), stdin) != nullptr)
+            {
+                username = buffer.data(); // copy to string
+            }
+        } while (username.length() <= 1);
+
+        // truncate the \n
+        username.pop_back();
 
         message.write((uint8_t)ClientActionType::USERNAME_REGISTRATION);
         message.write((uint8_t)0); // unused, the server works out who this user is based on their connection
 
-        char *temp = buffer + strlen(buffer) - 1; // remove the \n and replace with a null terminator
-        *temp = '\0';
-
         // write the username to the buffer
-        message.write(std::string{&buffer[0]});
+        message.write(username);
 
         // send the username
         ENetPacket *packet = enet_packet_create(message.buffer(), message.size(), ENET_PACKET_FLAG_RELIABLE);

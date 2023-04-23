@@ -32,7 +32,7 @@ namespace IMenet
             return false;
         }
 
-        m_running.store(true);
+        m_running = true;
 
         m_thread = std::thread([&]()
                                {
@@ -190,7 +190,7 @@ namespace IMenet
 
     void Server::stop()
     {
-        m_running.store(false);
+        m_running = false;
         m_thread.join();
     }
 
@@ -206,29 +206,27 @@ namespace IMenet
 
     void start_input_loop(IMenet::Server &server)
     {
-        char buffer[510];
+        std::array<char, 510> buffer{};
         while (server.is_running())
         {
-            memset(buffer, 0, 510);
-            if (fgets(buffer, 510, stdin) == nullptr)
+            if (fgets(buffer.data(), buffer.size(), stdin) == nullptr)
             {
                 continue;
             }
-            // get rid of that pesky \n
-            char *temp = buffer + strlen(buffer) - 1;
-            *temp = '\0';
-            if (strcmp(buffer, "") != 0)
+            std::string message = buffer.data();
+            if (message.length() > 1)
             {
-                if (strcmp(buffer, "exit") == 0)
+                message.pop_back(); // remove the \n
+                if (message == "exit")
                 {
                     server.stop();
                 }
                 else
                 {
-                    server.send_message({&buffer[0]});
-                    printf("\033[1A");                    // go up one line
-                    printf("\033[K");                     // delete to the end of the line
-                    printf("\rServer: %s\n", &buffer[0]); // use \r to get back to the start and print
+                    printf("\033[1A");                        // go up one line
+                    printf("\033[K");                         // delete to the end of the line
+                    printf("\rServer: %s\n", message.data()); // use \r to get back to the start and print
+                    server.send_message(std::move(message));
                 }
             }
         }
