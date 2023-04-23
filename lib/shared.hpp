@@ -8,7 +8,7 @@
 #include <vector>
 #include "messagebuffer.hpp"
 
-namespace IMNet
+namespace IMenet
 {
     // Client to server
     enum class ClientActionType : uint8_t

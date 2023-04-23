@@ -1,6 +1,6 @@
 #include "server.hpp"
 
-namespace IMNet
+namespace IMenet
 {
     Server::Server(std::string_view host_name, uint32_t port)
         : m_broadcast_message(512), m_usernames(255, std::string{})
@@ -204,7 +204,7 @@ namespace IMNet
         return s_empty;
     }
 
-    void start_input_loop(IMNet::Server &server)
+    void start_input_loop(IMenet::Server &server)
     {
         char buffer[510];
         while (server.is_running())

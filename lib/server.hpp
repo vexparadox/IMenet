@@ -3,7 +3,7 @@
 #include <iostream>
 #include <mutex>
 
-namespace IMNet
+namespace IMenet
 {
 	class Server final
 	{
@@ -35,5 +35,5 @@ namespace IMNet
 		OwningMessageBuffer m_broadcast_message;
 	};
 
-	void start_input_loop(IMNet::Server& server);
+	void start_input_loop(IMenet::Server& server);
 }

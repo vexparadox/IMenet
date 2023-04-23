@@ -1,6 +1,6 @@
 #include "client.hpp"
 
-namespace IMNet
+namespace IMenet
 {
     Client::Client(std::string_view host_name, uint32_t port)
         : m_server_message(512), m_usernames(255, std::string{})
@@ -184,7 +184,7 @@ namespace IMNet
         }
     }
 
-    void start_input_loop(IMNet::Client &client)
+    void start_input_loop(IMenet::Client &client)
     {
         char buffer[510];
         while (client.is_running())

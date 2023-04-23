@@ -10,11 +10,11 @@ int main(int argc, char const *argv[])
     std::string_view server_address = argv[1];
     int port_number = atoi(argv[2]);
 
-    IMNet::Server server(server_address, port_number);
+    IMenet::Server server(server_address, port_number);
 
     if(server.run())
     {
-        IMNet::start_input_loop(server);
+        IMenet::start_input_loop(server);
     }
     return 0;
 }

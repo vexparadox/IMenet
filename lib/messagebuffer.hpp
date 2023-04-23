@@ -2,7 +2,7 @@
 #include <array>
 #include <string>
 
-namespace IMNet
+namespace IMenet
 {
     // A non-owning view of a buffer that allows read/write of primitives + strings
     class MessageBuffer
