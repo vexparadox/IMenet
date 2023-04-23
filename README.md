@@ -1,16 +1,16 @@
-# IM system
+# IMenet
 This is a micro instant messaging system, there's a server and client side. Users can have a custom Username and talk to others on the same server.
 
-Blog post coming soon.
+**This project was started in University over 6 years ago and I updating for the sake of curiosity.**
 
 ## Requirements & Setup
 If you're compiling from scratch you'll need the Enet library to be linked, http://enet.bespin.org. On Linux and OSX it's a simple make install process, it's also available on HomeBrew `brew install enet`.
 
 If you're using the pre-compiled OSX Standalone, skip to the second step
 
-* To build on OSX (standalone included) and Linux use the makefile provided.
+* To build on OSX and Linux use the makefile provided.
 
-* Start using `./output ip port` or `./OSXStandaloneClient ip port` if you're using the precompiled standalone
+* Start using `./output ip port`
 
 * Make sure the server has started before the client. 
 
@@ -38,7 +38,5 @@ Note that B2 is used for UserIDs, the Client doesn't need to know about its own 
 
 ### One day...
 OpenSSL support
-
-Change packet size to a defined constant, it's messy with literals all over
 
 Add a server disconnect packet, S->C. Could use the User Disconnected packet, special case for 255 (Server ID)
