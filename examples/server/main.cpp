@@ -1,5 +1,5 @@
 #include "main.hpp"
-#include "../lib/server.hpp"
+#include "../../src/server.hpp"
 
 int main(int argc, char const *argv[])
 {

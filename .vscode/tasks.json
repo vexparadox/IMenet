@@ -2,11 +2,11 @@
     "tasks": [
         {
             "type": "cppbuild",
-            "label": "make server",
+            "label": "make example server",
             "command": "/usr/bin/make",
             "args": [],
             "options": {
-                "cwd": "${workspaceFolder}/server/"
+                "cwd": "${workspaceFolder}/examples/server/"
             },
             "problemMatcher": [
                 "$gcc"
@@ -18,11 +18,11 @@
         },
         {
             "type": "cppbuild",
-            "label": "make client",
+            "label": "make example client",
             "command": "/usr/bin/make",
             "args": [],
             "options": {
-                "cwd": "${workspaceFolder}/client/"
+                "cwd": "${workspaceFolder}/examples/client/"
             },
             "problemMatcher": [
                 "$gcc"
