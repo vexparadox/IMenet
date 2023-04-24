@@ -161,7 +161,10 @@ namespace IMenet
     void Client::stop()
     {
         m_running = false;
-        m_thread.join();
+        if(m_thread.joinable())
+        {
+            m_thread.join();
+        }
     }
 
     const std::string &Client::get_username(uint8_t user_id) const
@@ -202,33 +205,6 @@ namespace IMenet
             // reset if we reach here, this is a forcefull disconnect
             enet_peer_reset(m_peer);
             break;
-        }
-    }
-
-    void start_input_loop(IMenet::Client &client)
-    {
-        std::array<char, 510> buffer{};
-        while (client.is_running())
-        {
-            if (fgets(buffer.data(), buffer.size(), stdin) == nullptr)
-            {
-                continue;
-            }
-            std::string message = buffer.data();
-            if (message.length() > 1)
-            {
-                message.pop_back(); // remove the \n
-                if (message == "exit")
-                {
-                    client.stop();
-                }
-                else
-                {
-                    client.send_message(std::move(message));
-                    printf("\033[1A"); // go up one line
-                    printf("\033[K");  // delete to the end of the line
-                }
-            }
         }
     }
 

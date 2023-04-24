@@ -34,6 +34,4 @@ namespace IMenet
 
 		OwningMessageBuffer m_broadcast_message;
 	};
-
-	void start_input_loop(IMenet::Server& server);
 }

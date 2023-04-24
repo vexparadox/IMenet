@@ -191,7 +191,10 @@ namespace IMenet
     void Server::stop()
     {
         m_running = false;
-        m_thread.join();
+        if(m_thread.joinable())
+        {
+            m_thread.join();
+        }
     }
 
     const std::string &Server::get_username(uint8_t user_id) const
@@ -202,33 +205,5 @@ namespace IMenet
             return m_usernames[user_id];
         }
         return s_empty;
-    }
-
-    void start_input_loop(IMenet::Server &server)
-    {
-        std::array<char, 510> buffer{};
-        while (server.is_running())
-        {
-            if (fgets(buffer.data(), buffer.size(), stdin) == nullptr)
-            {
-                continue;
-            }
-            std::string message = buffer.data();
-            if (message.length() > 1)
-            {
-                message.pop_back(); // remove the \n
-                if (message == "exit")
-                {
-                    server.stop();
-                }
-                else
-                {
-                    printf("\033[1A");                        // go up one line
-                    printf("\033[K");                         // delete to the end of the line
-                    printf("\rServer: %s\n", message.data()); // use \r to get back to the start and print
-                    server.send_message(std::move(message));
-                }
-            }
-        }
     }
 }
